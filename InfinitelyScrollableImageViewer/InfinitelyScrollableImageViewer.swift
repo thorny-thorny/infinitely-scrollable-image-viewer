@@ -72,10 +72,11 @@ class InfinitelyScrollableImageViewer: UIView {
         let absoluteX = tileSize * (CGFloat(position.column) - 0.5)
         let absoluteY = tileSize * (CGFloat(position.row) - 0.5)
         
-        let x = (absoluteX + offset.x) * scale + rect.width * 0.5
-        let y = (absoluteY + offset.y) * scale + rect.height * 0.5
+        let x = floor((absoluteX + offset.x) * scale + rect.width * 0.5)
+        let y = floor((absoluteY + offset.y) * scale + rect.height * 0.5)
+        let size = ceil(tileSize * scale)
         
-        return CGRectMake(x, y, tileSize * scale, tileSize * scale)
+        return CGRectMake(x, y, size, size)
     }
     
     private func localPointToTile(point: CGPoint, rect: CGRect) -> TilePosition {
