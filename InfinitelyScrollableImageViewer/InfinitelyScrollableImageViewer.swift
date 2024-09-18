@@ -1,22 +1,24 @@
 import UIKit
 
 class InfinitelyScrollableImageViewer: UIView {
-    var baseOffset = CGPointZero
-    var offset = CGPointZero {
+    private let tileSize: CGFloat = 100
+    private let minScale: CGFloat = 0.5
+    private let maxScale: CGFloat = 4
+    
+    private var baseOffset = CGPointZero
+    private var offset = CGPointZero {
         didSet {
             setNeedsLayout()
         }
     }
     
-    var baseScale: CGFloat = 1
-    var scale: CGFloat = 1 {
+    private var baseScale: CGFloat = 1
+    private var scale: CGFloat = 1 {
         didSet {
             setNeedsLayout()
         }
     }
-    
-    let tileSize: CGFloat = 100
-    
+        
     var displayedCells = [GridPosition:InfinitelyScrollableImageViewerCell]()
     
     override init(frame: CGRect) {
@@ -43,7 +45,7 @@ class InfinitelyScrollableImageViewer: UIView {
             break
         case .changed:
             let translation = panGR.translation(in: self)
-            offset = CGPointMake(baseOffset.x + translation.x, baseOffset.y + translation.y)
+            offset = CGPointMake(baseOffset.x + translation.x / scale, baseOffset.y + translation.y / scale)
         case .ended, .cancelled, .failed:
             baseOffset = offset
         @unknown default:
@@ -56,7 +58,7 @@ class InfinitelyScrollableImageViewer: UIView {
         case .possible, .began:
             break
         case .changed:
-            scale = baseScale * pinchGR.scale
+            scale = min(maxScale, max(minScale, baseScale * pinchGR.scale))
         case .ended, .cancelled, .failed:
             baseScale = scale
         @unknown default:

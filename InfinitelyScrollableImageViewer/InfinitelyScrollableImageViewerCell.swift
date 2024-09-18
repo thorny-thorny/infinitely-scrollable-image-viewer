@@ -1,13 +1,7 @@
 import UIKit
 
 class InfinitelyScrollableImageViewerCell: UIView {
-    var position: GridPosition = GridPositionZero {
-        didSet {
-            setNeedsDisplay()
-        }
-    }
-    
-    var imageView: UIImageView?
+    private var imageView: UIImageView?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -25,7 +19,7 @@ class InfinitelyScrollableImageViewerCell: UIView {
         fatalError("You are not supposed to do this")
     }
     
-    func reload() {
+    internal func reload() {
         imageView?.image = nil
         
         let url = URL(string: "https://picsum.photos/200/200")!
