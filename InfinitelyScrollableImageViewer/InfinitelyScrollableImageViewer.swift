@@ -115,6 +115,7 @@ class InfinitelyScrollableImageViewer: UIView {
                 cell.column = topLeftColumn + column
                 cell.row = topLeftRow + row
                 cell.frame = tileToLocalRect(column: cell.column, row: cell.row, rect: bounds)
+                cell.reload()
             }
         }
     }
