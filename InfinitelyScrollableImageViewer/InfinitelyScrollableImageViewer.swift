@@ -4,6 +4,7 @@ class InfinitelyScrollableImageViewer: UIView {
     private let tileSize: CGFloat = 100
     private let minScale: CGFloat = 0.5
     private let maxScale: CGFloat = 4
+    private let extraTilesBorderWidth: CGFloat = 200
     
     weak var dataSource: InfinitelyScrollableImageViewerDataSource?
     
@@ -68,21 +69,21 @@ class InfinitelyScrollableImageViewer: UIView {
         }
     }
     
-    private func tileToLocalRect(position: TilePosition, rect: CGRect) -> CGRect {
+    private func tileToLocalRect(position: TilePosition, halfSize: CGSize) -> CGRect {
         let absoluteX = tileSize * (CGFloat(position.column) - 0.5)
         let absoluteY = tileSize * (CGFloat(position.row) - 0.5)
         
-        let x = floor((absoluteX + offset.x) * scale + rect.width * 0.5)
-        let y = floor((absoluteY + offset.y) * scale + rect.height * 0.5)
-        let size = ceil(tileSize * scale)
+        let x = floor((absoluteX + offset.x) * scale + halfSize.width)
+        let y = floor((absoluteY + offset.y) * scale + halfSize.height)
+        let size = floor(tileSize * scale)
         
         return CGRectMake(x, y, size, size)
     }
     
-    private func localPointToTile(point: CGPoint, rect: CGRect) -> TilePosition {
+    private func localPointToTile(point: CGPoint, halfSize: CGSize) -> TilePosition {
         // Inverted tileToLocalRect
-        let column = Int(floor(((point.x - rect.width * 0.5) / scale - offset.x) / tileSize)) - 1
-        let row = Int(floor(((point.y - rect.height * 0.5) / scale - offset.y) / tileSize)) - 1
+        let column = Int(floor(((point.x - halfSize.width) / scale - offset.x) / tileSize)) - 1
+        let row = Int(floor(((point.y - halfSize.height) / scale - offset.y) / tileSize)) - 1
         
         return TilePosition(column: column, row: row)
     }
@@ -92,12 +93,16 @@ class InfinitelyScrollableImageViewer: UIView {
             return
         }
         
-        let topLeftPosition = localPointToTile(point: CGPointZero, rect: bounds)
-        let columns = Int(ceil(bounds.width / (tileSize * scale))) + 3
-        let rows = Int(ceil(bounds.height / (tileSize * scale))) + 3
+        let scaledTileSize = floor(tileSize * scale)
+        let extraTiles = Int(ceil(extraTilesBorderWidth / scaledTileSize))
+        let halfSize = CGSizeMake(bounds.size.width / 2, bounds.size.height / 2)
         
-        let columnsRange = topLeftPosition.column..<(topLeftPosition.column + columns)
-        let rowsRange = topLeftPosition.row..<(topLeftPosition.row + rows)
+        let topLeftPosition = localPointToTile(point: CGPointZero, halfSize: halfSize)
+        let columns = Int(ceil(bounds.width / scaledTileSize)) + (extraTiles + 1) * 2
+        let rows = Int(ceil(bounds.height / scaledTileSize)) + (extraTiles + 1) * 2
+        
+        let columnsRange = (topLeftPosition.column - extraTiles)..<(topLeftPosition.column + columns)
+        let rowsRange = (topLeftPosition.row - extraTiles)..<(topLeftPosition.row + rows)
         
         var pool = [TilePosition:InfinitelyScrollableImageViewerTile]()
         
@@ -110,11 +115,18 @@ class InfinitelyScrollableImageViewer: UIView {
         pool.forEach { position, _ in
             displayedTiles.removeValue(forKey: position)
         }
+        
+        let firstTileRect = tileToLocalRect(position: TilePosition(column: columnsRange.lowerBound, row: rowsRange.lowerBound), halfSize: halfSize)
 
         for column in columnsRange {
             for row in rowsRange {
                 let position = TilePosition(column: column, row: row)
-                let tileFrame = tileToLocalRect(position: position, rect: bounds)
+                let tileFrame = CGRectMake(
+                    firstTileRect.origin.x + firstTileRect.width * CGFloat(column - columnsRange.lowerBound),
+                    firstTileRect.origin.y + firstTileRect.height * CGFloat(row - rowsRange.lowerBound),
+                    firstTileRect.width,
+                    firstTileRect.height
+                )
                 
                 if let displayedTile = displayedTiles[position] {
                     displayedTile.frame = tileFrame
