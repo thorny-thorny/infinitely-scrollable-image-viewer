@@ -4,21 +4,27 @@ class InfinitelyScrollableImageViewer: UIView {
     var baseOffset = CGPointZero
     var offset = CGPointZero
     
+    var baseScale: CGFloat = 1
+    var scale: CGFloat = 1
+    
+    let tileSize: CGFloat = 100
+    
     required init?(coder: NSCoder) {
         super.init(coder: coder)
         
-        let panGr = UIPanGestureRecognizer(target: self, action: #selector(onPan))
+        let panGR = UIPanGestureRecognizer(target: self, action: #selector(onPan))
+        let pinchGR = UIPinchGestureRecognizer(target: self, action: #selector(onPinch))
         
-        addGestureRecognizer(panGr)
+        addGestureRecognizer(panGR)
+        addGestureRecognizer(pinchGR)
     }
     
-    @objc func onPan(_ panGr: UIPanGestureRecognizer) {
-        let translation = panGr.translation(in: self)
-        
-        switch panGr.state {
+    @objc private func onPan(_ panGR: UIPanGestureRecognizer) {
+        switch panGR.state {
         case .possible, .began:
             break
         case .changed:
+            let translation = panGR.translation(in: self)
             offset = CGPointMake(baseOffset.x + translation.x, baseOffset.y + translation.y)
         case .ended, .cancelled, .failed:
             baseOffset = offset
@@ -29,27 +35,58 @@ class InfinitelyScrollableImageViewer: UIView {
         setNeedsDisplay()
     }
     
+    @objc private func onPinch(_ pinchGR: UIPinchGestureRecognizer) {
+        switch pinchGR.state {
+        case .possible, .began:
+            break
+        case .changed:
+            scale = baseScale * pinchGR.scale
+        case .ended, .cancelled, .failed:
+            baseScale = scale
+        @unknown default:
+            break
+        }
+        
+        setNeedsDisplay()
+    }
+    
+    private func tileToLocalRect(column: Int, row: Int, rect: CGRect) -> CGRect {
+        let absoluteX = tileSize * (CGFloat(column) - 0.5)
+        let absoluteY = tileSize * (CGFloat(row) - 0.5)
+        
+        let x = (absoluteX + offset.x) * scale + rect.width * 0.5
+        let y = (absoluteY + offset.y) * scale + rect.height * 0.5
+        
+        return CGRectMake(x, y, tileSize * scale, tileSize * scale)
+    }
+    
+    private func localPointToTile(point: CGPoint, rect: CGRect) -> (Int, Int) {
+        // Inverted tileToLocalRect
+        let column = Int(floor(((point.x - rect.width * 0.5) / scale - offset.x) / tileSize))
+        let row = Int(floor(((point.y - rect.height * 0.5) / scale - offset.y) / tileSize))
+        
+        return (column, row)
+    }
+    
     override func draw(_ rect: CGRect) {
-        let width = rect.width
-        let height = rect.height
-        let tileSize: CGFloat = 100
+        guard let context = UIGraphicsGetCurrentContext() else {
+            return
+        }
         
-        let columns = Int(ceil(width / tileSize)) + 1
-        let rows = Int(ceil(height / tileSize)) + 1
+        let (topLeftColumn, topLeftRow) = localPointToTile(point: CGPointZero, rect: rect)
+        let columns = Int(ceil(rect.width / (tileSize * scale))) + 1
+        let rows = Int(ceil(rect.height / (tileSize * scale))) + 1
         
-        let centerTileX = rect.width / 2 - tileSize / 2 + offset.x
-        let centerTileY = rect.height / 2 - tileSize / 2 + offset.y
+        UIGraphicsPushContext(context)
         
-        let startX = centerTileX - tileSize * ceil(centerTileX / tileSize)
-        let startY = centerTileY - tileSize * ceil(centerTileY / tileSize)
-        
-        let context = UIGraphicsGetCurrentContext()
-        context?.setStrokeColor(UIColor.red.cgColor)
-
-        for column in 0..<columns {
-            for row in 0..<rows {
-                context?.stroke(CGRectMake(startX + tileSize * CGFloat(column), startY + tileSize * CGFloat(row), tileSize, tileSize))
+        for column in topLeftColumn...(topLeftColumn + columns) {
+            for row in topLeftRow...(topLeftRow + rows) {
+                let rect = tileToLocalRect(column: column, row: row, rect: rect)
+                context.stroke(rect)
+                NSAttributedString(string: "\(column) : \(row)").draw(in: rect)
             }
         }
+
+        UIGraphicsPopContext()
     }
 }
