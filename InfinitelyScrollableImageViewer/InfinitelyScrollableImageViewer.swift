@@ -75,7 +75,7 @@ class InfinitelyScrollableImageViewer: UIView {
         
         let x = floor((absoluteX + offset.x) * scale + halfSize.width)
         let y = floor((absoluteY + offset.y) * scale + halfSize.height)
-        let size = floor(tileSize * scale)
+        let size = ceil(tileSize * scale)
         
         return CGRectMake(x, y, size, size)
     }
@@ -116,18 +116,11 @@ class InfinitelyScrollableImageViewer: UIView {
             displayedTiles.removeValue(forKey: position)
         }
         
-        let firstTileRect = tileToLocalRect(position: TilePosition(column: columnsRange.lowerBound, row: rowsRange.lowerBound), halfSize: halfSize)
-
         for column in columnsRange {
             for row in rowsRange {
                 let position = TilePosition(column: column, row: row)
-                let tileFrame = CGRectMake(
-                    firstTileRect.origin.x + firstTileRect.width * CGFloat(column - columnsRange.lowerBound),
-                    firstTileRect.origin.y + firstTileRect.height * CGFloat(row - rowsRange.lowerBound),
-                    firstTileRect.width,
-                    firstTileRect.height
-                )
-                
+                let tileFrame = tileToLocalRect(position: position, halfSize: halfSize)
+
                 if let displayedTile = displayedTiles[position] {
                     displayedTile.frame = tileFrame
                 } else {
