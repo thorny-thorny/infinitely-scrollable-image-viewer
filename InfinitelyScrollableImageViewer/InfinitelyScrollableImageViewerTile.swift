@@ -2,6 +2,7 @@ import UIKit
 
 class InfinitelyScrollableImageViewerTile: UIView {
     private var imageView: UIImageView?
+    private var dataTask: URLSessionDataTask?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -19,11 +20,23 @@ class InfinitelyScrollableImageViewerTile: UIView {
         fatalError("You are not supposed to do this")
     }
     
+    deinit {
+        dataTask?.cancel()
+    }
+    
     internal func reload() {
         imageView?.image = nil
+        dataTask?.cancel()
         
         let url = URL(string: "https://picsum.photos/200/200")!
-        URLSession.shared.dataTask(with: url, completionHandler: { data, response, error in
+        let request = URLRequest(url: url, timeoutInterval: 5)
+        dataTask = URLSession.shared.dataTask(with: request) { data, response, error in
+            defer {
+                DispatchQueue.main.async { [weak self] in
+                    self?.dataTask = nil
+                }
+            }
+            
             guard
                 let httpUrlResponse = response as? HTTPURLResponse,
                 httpUrlResponse.statusCode >= 200 && httpUrlResponse.statusCode < 300,
@@ -35,10 +48,11 @@ class InfinitelyScrollableImageViewerTile: UIView {
             else {
                 return
             }
-
+            
             DispatchQueue.main.async() { [weak self] in
                 self?.imageView?.image = image
             }
-        }).resume()
+        }
+        dataTask?.resume()
     }
 }

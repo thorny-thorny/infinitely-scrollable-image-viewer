@@ -94,13 +94,13 @@ class InfinitelyScrollableImageViewer: UIView {
         
         var pool = [TilePosition:InfinitelyScrollableImageViewerTile]()
         
-        displayedTiles.forEach { (position, tile) in
+        displayedTiles.forEach { position, tile in
             if !(columnsRange ~= position.column) || !(rowsRange ~= position.row) {
                 pool[position] = tile
             }
         }
         
-        pool.forEach { (position, _) in
+        pool.forEach { position, _ in
             displayedTiles.removeValue(forKey: position)
         }
 
@@ -129,7 +129,7 @@ class InfinitelyScrollableImageViewer: UIView {
             }
         }
         
-        pool.forEach { (_, tile) in
+        pool.forEach { _, tile in
             tile.removeFromSuperview()
         }
     }
