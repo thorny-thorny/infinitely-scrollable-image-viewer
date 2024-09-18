@@ -19,7 +19,7 @@ class InfinitelyScrollableImageViewer: UIView {
         }
     }
         
-    var displayedCells = [GridPosition:InfinitelyScrollableImageViewerCell]()
+    var displayedTiles = [TilePosition:InfinitelyScrollableImageViewerTile]()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -66,7 +66,7 @@ class InfinitelyScrollableImageViewer: UIView {
         }
     }
     
-    private func tileToLocalRect(position: GridPosition, rect: CGRect) -> CGRect {
+    private func tileToLocalRect(position: TilePosition, rect: CGRect) -> CGRect {
         let absoluteX = tileSize * (CGFloat(position.column) - 0.5)
         let absoluteY = tileSize * (CGFloat(position.row) - 0.5)
         
@@ -76,12 +76,12 @@ class InfinitelyScrollableImageViewer: UIView {
         return CGRectMake(x, y, tileSize * scale, tileSize * scale)
     }
     
-    private func localPointToTile(point: CGPoint, rect: CGRect) -> GridPosition {
+    private func localPointToTile(point: CGPoint, rect: CGRect) -> TilePosition {
         // Inverted tileToLocalRect
         let column = Int(floor(((point.x - rect.width * 0.5) / scale - offset.x) / tileSize)) - 1
         let row = Int(floor(((point.y - rect.height * 0.5) / scale - offset.y) / tileSize)) - 1
         
-        return GridPosition(column: column, row: row)
+        return TilePosition(column: column, row: row)
     }
     
     override func layoutSubviews() {
@@ -92,45 +92,45 @@ class InfinitelyScrollableImageViewer: UIView {
         let columnsRange = topLeftPosition.column..<(topLeftPosition.column + columns)
         let rowsRange = topLeftPosition.row..<(topLeftPosition.row + rows)
         
-        var pool = [GridPosition:InfinitelyScrollableImageViewerCell]()
+        var pool = [TilePosition:InfinitelyScrollableImageViewerTile]()
         
-        displayedCells.forEach { (position, cell) in
+        displayedTiles.forEach { (position, tile) in
             if !(columnsRange ~= position.column) || !(rowsRange ~= position.row) {
-                pool[position] = cell
+                pool[position] = tile
             }
         }
         
         pool.forEach { (position, _) in
-            displayedCells.removeValue(forKey: position)
+            displayedTiles.removeValue(forKey: position)
         }
 
         for column in columnsRange {
             for row in rowsRange {
-                let position = GridPosition(column: column, row: row)
-                let cellFrame = tileToLocalRect(position: position, rect: bounds)
+                let position = TilePosition(column: column, row: row)
+                let tileFrame = tileToLocalRect(position: position, rect: bounds)
                 
-                if let existingCell = displayedCells[position] {
-                    existingCell.frame = cellFrame
+                if let displayedTile = displayedTiles[position] {
+                    displayedTile.frame = tileFrame
                 } else {
-                    let cell: InfinitelyScrollableImageViewerCell
+                    let tile: InfinitelyScrollableImageViewerTile
                     if let poolElement = pool.randomElement() {
                         pool.removeValue(forKey: poolElement.key)
 
-                        cell = poolElement.value
-                        cell.frame = cellFrame
+                        tile = poolElement.value
+                        tile.frame = tileFrame
                     } else {
-                        cell = InfinitelyScrollableImageViewerCell(frame: cellFrame)
-                        addSubview(cell)
+                        tile = InfinitelyScrollableImageViewerTile(frame: tileFrame)
+                        addSubview(tile)
                     }
                     
-                    displayedCells[position] = cell
-                    cell.reload()
+                    displayedTiles[position] = tile
+                    tile.reload()
                 }
             }
         }
         
-        pool.forEach { (_, cell) in
-            cell.removeFromSuperview()
+        pool.forEach { (_, tile) in
+            tile.removeFromSuperview()
         }
     }
 }

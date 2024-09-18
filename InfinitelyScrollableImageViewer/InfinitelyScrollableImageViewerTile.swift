@@ -1,6 +1,6 @@
 import UIKit
 
-class InfinitelyScrollableImageViewerCell: UIView {
+class InfinitelyScrollableImageViewerTile: UIView {
     private var imageView: UIImageView?
     
     override init(frame: CGRect) {
