@@ -1,13 +1,7 @@
 import UIKit
 
 class InfinitelyScrollableImageViewerCell: UIView {
-    var column: Int = 0 {
-        didSet {
-            setNeedsDisplay()
-        }
-    }
-    
-    var row: Int = 0 {
+    var position: GridPosition = GridPositionZero {
         didSet {
             setNeedsDisplay()
         }
@@ -32,6 +26,8 @@ class InfinitelyScrollableImageViewerCell: UIView {
     }
     
     func reload() {
+        imageView?.image = nil
+        
         let url = URL(string: "https://picsum.photos/200/200")!
         URLSession.shared.dataTask(with: url, completionHandler: { data, response, error in
             guard

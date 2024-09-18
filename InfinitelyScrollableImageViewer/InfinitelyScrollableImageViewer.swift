@@ -17,7 +17,7 @@ class InfinitelyScrollableImageViewer: UIView {
     
     let tileSize: CGFloat = 100
     
-    var cellsPool = [InfinitelyScrollableImageViewerCell]()
+    var displayedCells = [GridPosition:InfinitelyScrollableImageViewerCell]()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -64,9 +64,9 @@ class InfinitelyScrollableImageViewer: UIView {
         }
     }
     
-    private func tileToLocalRect(column: Int, row: Int, rect: CGRect) -> CGRect {
-        let absoluteX = tileSize * (CGFloat(column) - 0.5)
-        let absoluteY = tileSize * (CGFloat(row) - 0.5)
+    private func tileToLocalRect(position: GridPosition, rect: CGRect) -> CGRect {
+        let absoluteX = tileSize * (CGFloat(position.column) - 0.5)
+        let absoluteY = tileSize * (CGFloat(position.row) - 0.5)
         
         let x = (absoluteX + offset.x) * scale + rect.width * 0.5
         let y = (absoluteY + offset.y) * scale + rect.height * 0.5
@@ -74,49 +74,61 @@ class InfinitelyScrollableImageViewer: UIView {
         return CGRectMake(x, y, tileSize * scale, tileSize * scale)
     }
     
-    private func localPointToTile(point: CGPoint, rect: CGRect) -> (Int, Int) {
+    private func localPointToTile(point: CGPoint, rect: CGRect) -> GridPosition {
         // Inverted tileToLocalRect
         let column = Int(floor(((point.x - rect.width * 0.5) / scale - offset.x) / tileSize)) - 1
         let row = Int(floor(((point.y - rect.height * 0.5) / scale - offset.y) / tileSize)) - 1
         
-        return (column, row)
-    }
-    
-    func adjustCellsPool(columns: Int, rows: Int) {
-        let cellsCount = columns * rows
-        
-        if (cellsPool.count > cellsCount) {
-            for i in cellsCount..<cellsPool.count {
-                cellsPool[i].removeFromSuperview()
-            }
-            cellsPool = Array(cellsPool[0..<cellsCount])
-        } else if (cellsPool.count < cellsCount) {
-            let delta = cellsCount - cellsPool.count
-            for _ in 1...delta {
-                let cell = InfinitelyScrollableImageViewerCell(frame: CGRectMake(0, 0, tileSize, tileSize))
-                addSubview(cell)
-                cellsPool.append(cell)
-            }
-        }
+        return GridPosition(column: column, row: row)
     }
     
     override func layoutSubviews() {
-        let (topLeftColumn, topLeftRow) = localPointToTile(point: CGPointZero, rect: bounds)
+        let topLeftPosition = localPointToTile(point: CGPointZero, rect: bounds)
         let columns = Int(ceil(bounds.width / (tileSize * scale))) + 3
         let rows = Int(ceil(bounds.height / (tileSize * scale))) + 3
         
-        adjustCellsPool(columns: columns, rows: rows)
-
-        for column in 0..<columns {
-            for row in 0..<rows {
-                let cellIndex = column * rows + row
-                let cell = cellsPool[cellIndex]
-
-                cell.column = topLeftColumn + column
-                cell.row = topLeftRow + row
-                cell.frame = tileToLocalRect(column: cell.column, row: cell.row, rect: bounds)
-                cell.reload()
+        let columnsRange = topLeftPosition.column..<(topLeftPosition.column + columns)
+        let rowsRange = topLeftPosition.row..<(topLeftPosition.row + rows)
+        
+        var pool = [GridPosition:InfinitelyScrollableImageViewerCell]()
+        
+        displayedCells.forEach { (position, cell) in
+            if !(columnsRange ~= position.column) || !(rowsRange ~= position.row) {
+                pool[position] = cell
             }
+        }
+        
+        pool.forEach { (position, _) in
+            displayedCells.removeValue(forKey: position)
+        }
+
+        for column in columnsRange {
+            for row in rowsRange {
+                let position = GridPosition(column: column, row: row)
+                let cellFrame = tileToLocalRect(position: position, rect: bounds)
+                
+                if let existingCell = displayedCells[position] {
+                    existingCell.frame = cellFrame
+                } else {
+                    let cell: InfinitelyScrollableImageViewerCell
+                    if let poolElement = pool.randomElement() {
+                        pool.removeValue(forKey: poolElement.key)
+
+                        cell = poolElement.value
+                        cell.frame = cellFrame
+                    } else {
+                        cell = InfinitelyScrollableImageViewerCell(frame: cellFrame)
+                        addSubview(cell)
+                    }
+                    
+                    displayedCells[position] = cell
+                    cell.reload()
+                }
+            }
+        }
+        
+        pool.forEach { (_, cell) in
+            cell.removeFromSuperview()
         }
     }
 }

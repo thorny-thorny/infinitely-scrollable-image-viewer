@@ -14,6 +14,7 @@
 		A3B153402C9B0F5300DA2494 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A3B1533C2C9B0F5300DA2494 /* Main.storyboard */; };
 		A3B153442C9B0FCE00DA2494 /* InfinitelyScrollableImageViewer.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B153432C9B0FCE00DA2494 /* InfinitelyScrollableImageViewer.swift */; };
 		A3B153462C9B3AF900DA2494 /* InfinitelyScrollableImageViewerCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B153452C9B3AF900DA2494 /* InfinitelyScrollableImageViewerCell.swift */; };
+		A3B153482C9B4ABB00DA2494 /* GridPosition.swift in Sources */ = {isa = PBXBuildFile; fileRef = A3B153472C9B4ABB00DA2494 /* GridPosition.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -25,6 +26,7 @@
 		A3B1533D2C9B0F5300DA2494 /* Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		A3B153432C9B0FCE00DA2494 /* InfinitelyScrollableImageViewer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfinitelyScrollableImageViewer.swift; sourceTree = "<group>"; };
 		A3B153452C9B3AF900DA2494 /* InfinitelyScrollableImageViewerCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfinitelyScrollableImageViewerCell.swift; sourceTree = "<group>"; };
+		A3B153472C9B4ABB00DA2494 /* GridPosition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GridPosition.swift; sourceTree = "<group>"; };
 		A3E3FBF82C9B0D5B00314E5C /* InfinitelyScrollableImageViewer.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = InfinitelyScrollableImageViewer.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -64,6 +66,7 @@
 			children = (
 				A3B153432C9B0FCE00DA2494 /* InfinitelyScrollableImageViewer.swift */,
 				A3B153452C9B3AF900DA2494 /* InfinitelyScrollableImageViewerCell.swift */,
+				A3B153472C9B4ABB00DA2494 /* GridPosition.swift */,
 			);
 			path = InfinitelyScrollableImageViewer;
 			sourceTree = "<group>";
@@ -159,6 +162,7 @@
 			files = (
 				A3B153382C9B0F4C00DA2494 /* AppDelegate.swift in Sources */,
 				A3B153442C9B0FCE00DA2494 /* InfinitelyScrollableImageViewer.swift in Sources */,
+				A3B153482C9B4ABB00DA2494 /* GridPosition.swift in Sources */,
 				A3B153372C9B0F4C00DA2494 /* ViewController.swift in Sources */,
 				A3B153462C9B3AF900DA2494 /* InfinitelyScrollableImageViewerCell.swift in Sources */,
 			);
