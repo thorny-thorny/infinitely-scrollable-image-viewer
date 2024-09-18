@@ -30,6 +30,9 @@
                             <constraint firstItem="OD3-yv-qcv" firstAttribute="top" secondItem="8bC-Xf-vdC" secondAttribute="top" id="WMl-aC-8CU"/>
                         </constraints>
                     </view>
+                    <connections>
+                        <outlet property="imageViewer" destination="OD3-yv-qcv" id="wEe-pr-wEH"/>
+                    </connections>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="dkx-z0-nzr" sceneMemberID="firstResponder"/>
             </objects>

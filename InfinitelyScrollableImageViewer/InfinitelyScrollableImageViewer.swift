@@ -5,6 +5,8 @@ class InfinitelyScrollableImageViewer: UIView {
     private let minScale: CGFloat = 0.5
     private let maxScale: CGFloat = 4
     
+    weak var dataSource: InfinitelyScrollableImageViewerDataSource?
+    
     private var baseOffset = CGPointZero
     private var offset = CGPointZero {
         didSet {
@@ -19,7 +21,7 @@ class InfinitelyScrollableImageViewer: UIView {
         }
     }
         
-    var displayedTiles = [TilePosition:InfinitelyScrollableImageViewerTile]()
+    private var displayedTiles = [TilePosition:InfinitelyScrollableImageViewerTile]()
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -85,6 +87,10 @@ class InfinitelyScrollableImageViewer: UIView {
     }
     
     override func layoutSubviews() {
+        guard let dataSource = dataSource else {
+            return
+        }
+        
         let topLeftPosition = localPointToTile(point: CGPointZero, rect: bounds)
         let columns = Int(ceil(bounds.width / (tileSize * scale))) + 3
         let rows = Int(ceil(bounds.height / (tileSize * scale))) + 3
@@ -124,7 +130,7 @@ class InfinitelyScrollableImageViewer: UIView {
                     }
                     
                     displayedTiles[position] = tile
-                    tile.reload()
+                    tile.reload(with: dataSource.urlForTile(at: position))
                 }
             }
         }

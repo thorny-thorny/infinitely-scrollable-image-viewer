@@ -3,6 +3,7 @@ import UIKit
 class InfinitelyScrollableImageViewerTile: UIView {
     private var imageView: UIImageView?
     private var dataTask: URLSessionDataTask?
+    private var loadingImageUrl: URL?
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -24,33 +25,30 @@ class InfinitelyScrollableImageViewerTile: UIView {
         dataTask?.cancel()
     }
     
-    internal func reload() {
+    internal func reload(with imageUrl: URL) {
         imageView?.image = nil
         dataTask?.cancel()
+        loadingImageUrl = imageUrl
         
-        let url = URL(string: "https://picsum.photos/200/200")!
-        let request = URLRequest(url: url, timeoutInterval: 5)
+        let request = URLRequest(url: imageUrl, timeoutInterval: 5)
         dataTask = URLSession.shared.dataTask(with: request) { data, response, error in
-            defer {
-                DispatchQueue.main.async { [weak self] in
-                    self?.dataTask = nil
-                }
-            }
-            
-            guard
-                let httpUrlResponse = response as? HTTPURLResponse,
-                httpUrlResponse.statusCode >= 200 && httpUrlResponse.statusCode < 300,
-                let mimeType = response?.mimeType,
-                mimeType.hasPrefix("image"),
+            var image: UIImage? = nil
+            if
                 let data = data,
-                error == nil,
-                let image = UIImage(data: data)
-            else {
-                return
+                let mimeType = response?.mimeType,
+                let httpUrlResponse = response as? HTTPURLResponse,
+                200..<300 ~= httpUrlResponse.statusCode &&
+                mimeType.hasPrefix("image") &&
+                error == nil
+            {
+                image = UIImage(data: data)
             }
             
             DispatchQueue.main.async() { [weak self] in
-                self?.imageView?.image = image
+                if imageUrl == self?.loadingImageUrl {
+                    self?.imageView?.image = image
+                    self?.dataTask = nil
+                }
             }
         }
         dataTask?.resume()
